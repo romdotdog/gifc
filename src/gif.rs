@@ -3,6 +3,7 @@ use gif::Decoder;
 use gifski::{progress::NoProgress, Repeat, Settings};
 use rgb::RGBA8;
 use std::{
+    borrow::BorrowMut,
     cmp::{max, min},
     io::{Read, Write},
     thread,
@@ -116,38 +117,22 @@ where
                     &global
                 };
 
-                let v: Vec<RGBA8> = frame
-                    .buffer
-                    .iter()
-                    .map(|&p| {
-                        if t.is_some() && t.unwrap() == p {
-                            RGBA8 {
-                                r: 0,
-                                g: 0,
-                                b: 0,
-                                a: 0,
-                            }
-                        } else {
-                            RGBA8 {
+                let l = frame.left as usize;
+                let w = frame.width as usize;
+
+                let mut v = frame.buffer.iter();
+
+                for row in canvas.rows_mut().skip(frame.top as usize + 128) {
+                    for (i, &p) in v.borrow_mut().take(w).enumerate() {
+                        if t.is_none() || t.unwrap() != p {
+                            row[l + i] = RGBA8 {
                                 r: c[p as usize * 3],
                                 g: c[p as usize * 3 + 1],
                                 b: c[p as usize * 3 + 2],
                                 a: 255,
-                            }
+                            };
                         }
-                    })
-                    .collect();
-
-                let l = frame.left as usize;
-                let w = frame.width as usize;
-                for (i, row) in canvas.rows_mut().skip(frame.top as usize + 128).enumerate() {
-                    let start = i * w;
-                    let v: Vec<RGBA8> = v[start..start + w]
-                        .iter()
-                        .enumerate()
-                        .map(|(i, p)| if p.a == 0 { row[l + i] } else { *p })
-                        .collect();
-                    row[l..l + w].copy_from_slice(&v)
+                    }
                 }
 
                 collector

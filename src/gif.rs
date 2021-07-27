@@ -6,6 +6,7 @@ use std::{
     cmp::{max, min},
     io::{Read, Write},
     thread,
+    time::Instant,
 };
 
 pub fn caption<R, W>(reader: R, writer: W, mut caption: String)
@@ -101,12 +102,12 @@ where
     // TODO: don't clone here?
     let global = decoder.global_palette().unwrap().to_owned();
 
+    let time = Instant::now();
     let rthread = thread::Builder::new()
         .name("decode".into())
         .spawn(move || {
             let mut index = 0;
             while let Some(frame) = decoder.read_next_frame().unwrap() {
-                eprintln!("{}", index);
                 let t = frame.transparent;
 
                 let c: &Vec<u8> = if let Some(ref p) = frame.palette {
@@ -160,4 +161,5 @@ where
 
     gif_writer.write(writer, &mut NoProgress {}).unwrap();
     rthread.join().expect("thread panick");
+    eprintln!("{}ms", time.elapsed().as_millis());
 }

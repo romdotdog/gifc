@@ -80,12 +80,12 @@ where
     .unwrap();
 
     let padding = (width as i32 - text_width as i32) / 2i32;
-    for (i, row) in canvas.rows_mut().skip(48).take(text_height).enumerate() {
+    for (i, row) in canvas.rows_mut().skip(44).take(84).enumerate() {
         let mut x = padding;
         for (m, p) in &v {
             let w = m.width as i32;
-            let i = i as i32 - (text_height as i32 - m.height as i32 - m.ymin);
-            if i > 0 {
+            let i = i as i32 - text_height as i32 + m.height as i32 + m.ymin;
+            if i >= 0 {
                 let lrow = m.width * i as usize;
                 if x + w > 0 && x - w < width as i32 {
                     let start = max(-x, 0);

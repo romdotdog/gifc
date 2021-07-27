@@ -1,11 +1,8 @@
-use std::{
-    io::{stdout, Stdout},
-    process::exit,
-};
+use std::{io::stdout, process::exit};
 
 use atty::Stream;
 use clap::{App, Arg};
-use std::{fs::File, io::Write};
+use std::fs::File;
 
 mod gif;
 
@@ -41,21 +38,6 @@ fn main() {
     gif::caption(
         File::open(matches.value_of("INPUT").unwrap()).unwrap(),
         stdout(),
-        //StdoutWriter { stdout: stdout() },
         matches.value_of("caption").unwrap().to_owned(),
     )
-}
-
-struct StdoutWriter {
-    stdout: Stdout,
-}
-
-impl Write for StdoutWriter {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.stdout.write_all(&[22, 22]).map(|()| buf.len())
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.stdout.flush()
-    }
 }

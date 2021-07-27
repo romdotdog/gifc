@@ -18,7 +18,7 @@ where
         font,
         fontdue::FontSettings {
             collection_index: 0,
-            scale: 32f32,
+            scale: 36f32,
         },
     )
     .unwrap();
@@ -26,14 +26,14 @@ where
     let v: Vec<(Metrics, Vec<RGBA8>)> = caption
         .drain(..)
         .map(|c| {
-            let (metrics, mut v) = font.rasterize(c, 32f32);
+            let (metrics, mut v) = font.rasterize(c, 36f32);
             (
                 metrics,
                 v.drain(..)
                     .map(|p| RGBA8 {
-                        r: p,
-                        g: p,
-                        b: p,
+                        r: 255 - p,
+                        g: 255 - p,
+                        b: 255 - p,
                         a: 255,
                     })
                     .collect::<Vec<RGBA8>>(),
@@ -43,7 +43,7 @@ where
 
     let (text_width, text_height) = v.iter().fold((0, 0), |acc, c| {
         (
-            acc.0 + c.0.width,
+            acc.0 + c.0.width + max(c.0.xmin, 0) as usize,
             if c.0.height > acc.1 {
                 c.0.height
             } else {
@@ -78,17 +78,23 @@ where
     .unwrap();
 
     let padding = (width as i32 - text_width as i32) / 2i32;
-    for row in canvas.rows_mut().skip(48).take(text_height) {
+    for (i, row) in canvas.rows_mut().skip(48).take(text_height).enumerate() {
         let mut x = padding;
-        for letter in &v {
-            let w = letter.0.width as i32;
-            if x + w > 0 && x - w < width as i32 {
-                let start = max(-x, 0);
-                let end = min(w, width as i32 - x);
-                row[(x + start) as usize..(x + end) as usize]
-                    .copy_from_slice(&letter.1[start as usize..end as usize])
+        for (m, p) in &v {
+            let w = m.width as i32;
+            let i = i as i32 - (text_height as i32 - m.height as i32 - m.ymin);
+            if i > 0 {
+                let lrow = m.width * i as usize;
+                if x + w > 0 && x - w < width as i32 {
+                    let start = max(-x, 0);
+                    let end = min(w, width as i32 - x);
+                    if lrow + (end as usize) < p.len() {
+                        row[(x + start) as usize..(x + end) as usize]
+                            .copy_from_slice(&p[lrow + start as usize..lrow + end as usize])
+                    }
+                }
             }
-            x += w;
+            x += w + m.xmin;
         }
     }
 
@@ -144,7 +150,7 @@ where
                 }
 
                 collector
-                    .add_frame_rgba(index, canvas.clone(), index as f64 / 60f64)
+                    .add_frame_rgba(index, canvas.clone(), index as f64 / 100f64)
                     .unwrap();
 
                 index += 1;

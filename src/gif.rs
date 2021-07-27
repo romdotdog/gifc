@@ -20,7 +20,7 @@ where
         font,
         fontdue::FontSettings {
             collection_index: 0,
-            scale: 36f32,
+            scale: 48f32,
         },
     )
     .unwrap();
@@ -28,7 +28,7 @@ where
     let v: Vec<(Metrics, Vec<RGBA8>)> = caption
         .drain(..)
         .map(|c| {
-            let (metrics, mut v) = font.rasterize(c, 36f32);
+            let (metrics, mut v) = font.rasterize(c, 48f32);
             (
                 metrics,
                 v.drain(..)
@@ -123,9 +123,9 @@ where
                 let mut v = frame.buffer.iter();
 
                 for row in canvas.rows_mut().skip(frame.top as usize + 128) {
-                    for (i, &p) in v.borrow_mut().take(w).enumerate() {
+                    for (&p, d) in v.borrow_mut().take(w).zip(row.iter_mut().skip(l)) {
                         if t.is_none() || t.unwrap() != p {
-                            row[l + i] = RGBA8 {
+                            *d = RGBA8 {
                                 r: c[p as usize * 3],
                                 g: c[p as usize * 3 + 1],
                                 b: c[p as usize * 3 + 2],

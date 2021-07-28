@@ -80,7 +80,7 @@ where
     .unwrap();
 
     let padding = (width as i32 - text_width as i32) / 2i32;
-    for (i, row) in canvas.rows_mut().skip(44).take(84).enumerate() {
+    for (i, row) in canvas.rows_mut().skip(48).take(80).enumerate() {
         let mut x = padding;
         for (m, p) in &v {
             let w = m.width as i32;
@@ -136,7 +136,7 @@ where
                 }
 
                 collector
-                    .add_frame_rgba(index, canvas.clone(), index as f64 / 100f64)
+                    .add_frame_rgba(index, canvas.clone(), index as f64 / 60f64)
                     .unwrap();
 
                 index += 1;

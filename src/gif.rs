@@ -108,6 +108,7 @@ where
         .name("decode".into())
         .spawn(move || {
             let mut index = 0;
+            let mut pts = 0f64;
             while let Some(frame) = decoder.read_next_frame().unwrap() {
                 let t = frame.transparent;
 
@@ -136,8 +137,10 @@ where
                 }
 
                 collector
-                    .add_frame_rgba(index, canvas.clone(), index as f64 / 60f64)
+                    .add_frame_rgba(index, canvas.clone(), pts)
                     .unwrap();
+
+                pts += frame.delay as f64 / 100f64;
 
                 index += 1;
             }
